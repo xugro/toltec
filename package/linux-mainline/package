@@ -6,20 +6,28 @@ archs=(rm2)
 pkgnames=(linux-mainline)
 pkgdesc="reMarkable 2 kernel based on the mainline kernel"
 url=https://www.kernel.org
-pkgver=5.18.0-1
-timestamp=2022-05-22T21:50:09Z
+pkgver=6.3.0-2
+timestamp=2023-08-23T21:50:09Z
 section=kernel
 maintainer="Alistair Francis <alistair@alistair23.me>"
 makedepends=(build:flex build:bison build:libssl-dev build:bc build:lzop build:libgmp-dev build:libmpc-dev)
+installdepends=(kernelctl)
 license=GPL-2.0-only
 flags=(nostrip)
 
-image=base:v2.3
-source=("https://github.com/alistair23/linux/archive/f9fe680995e01398f0813077711fe1b744251c5b.tar.gz")
-sha256sums=(d38c883a31f5f87483377e78b4b3a2eb1ce73ada38fc25949e692dd0b2dd7895)
+image=base:v3.2
+source=(
+    https://github.com/alistair23/linux/archive/1698a3bdd8d66e58873c5bb3ce370b7d48b004cf.tar.gz
+    remarkable_defconfig
+)
+sha256sums=(
+    647f6a60adad8c4e37eeaf9114c037888cb33923e364bbf5dc0830b2661c21b7
+    f4d8cbb2c0e7bff5b151729b45064eb9e95005cb91899f0a9df038343d95ebf2
+)
 
 build() {
-    ARCH=arm make imx_v6_v7_defconfig
+    cp remarkable_defconfig arch/arm/configs/
+    ARCH=arm make remarkable_defconfig
     ARCH=arm make -j8
 }
 
@@ -38,32 +46,19 @@ package() {
     # Create the kernel archive
     local archive="mainline-${pkgver%-*}.tar.bz2"
     install -d "$pkgdir"/opt/usr/share/kernelctl
-    tar --owner root:0 --group root:0 --mtime=$timestamp \
-        -cjf "$pkgdir"/opt/usr/share/kernelctl/"$archive" -C "$staging" .
+    (cd "$staging" && tar --owner root:0 --group root:0 --mtime=$timestamp \
+        -cjf "$pkgdir"/opt/usr/share/kernelctl/"$archive" boot/* lib/modules/*)
 }
 
 configure() {
     echo "The new kernel files have been copied, but not installed."
-    echo "Before installing them, make a backup of the existing kernel:"
-    echo "  mkdir -p /home/root/boot-backup"
-    echo "  cp -rvf /boot/* /home/root/boot-backup/"
-    echo
-    echo "Then replace it with the new kernel and reboot:"
-    echo "  tar -xvf /opt/usr/share/kernelctl/mainline-${pkgver%-*}.tar.bz2 -C /"
-    echo "  /bin/sync"
+    echo "Please use kernelctl to select the kernel to boot."
     echo
     echo "Known issues with the mainline kernel:"
     echo " - No support for low power mode (suspend uses more power then it should)"
-    echo " - WiFi sometimes is off on boot (can be turned on again though)"
-    echo " - GUI shutdown in Oxide doesn't work"
-    echo " - Wacom stylus doesn't work in Xochitl (works everywhere else though)"
+    echo " - Shutdown doesn't work (https://github.com/alistair23/linux/issues/4)"
+    echo " - Device doesn't always resume correctly from suspend, a reboot is required"
+    echo " - Wacom stylus doesn't work in Xochitl (https://github.com/reMarkable/linux/issues/15)"
     echo " - No OTG control support"
-}
-
-postremove() {
-    echo "To restore to the original kernel, run and then reboot"
-    echo "  rm -rf /lib/modules/${pkgver%-*}/"
-    echo "  cp -f /home/root/boot-backup/zImage /boot/"
-    echo "  cp -f /home/root/boot-backup/zero-sugar.dtb /boot/"
-    echo "  /bin/sync"
+    echo " - Folio does not work"
 }

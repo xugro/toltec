@@ -2,61 +2,75 @@
 # Copyright (c) 2021 The Toltec Contributors
 # SPDX-License-Identifier: MIT
 
-archs=(rm1 rm2)
+archs=(rm1os2 rm2os2)
 pkgnames=(ddvk-hacks)
 pkgdesc="Enhance Xochitl with additional features"
 url=https://github.com/ddvk/remarkable-hacks
-pkgver=35.01-1
-timestamp=2022-07-09T00:05:57+0200
+pkgver=39.01-4
+timestamp=2022-11-09T18:31:51Z
 section="readers"
 maintainer="Mattéo Delabre <spam@delab.re>"
 license=MIT
 flags=(nostrip)
+conflicts=(webinterface-onboot signature-rm)
 
-source=(https://github.com/ddvk/remarkable-hacks/archive/5e5aabf1dfe02b802a3ce8ce1046bd05fe29ffd2.zip)
-sha256sums=(cb47f0291f8712a8df563bb6a5793fd2b699074fe055d56c40efe987eb5f7571)
+source=(https://github.com/ddvk/remarkable-hacks/archive/90e7e3e7ffc269373de191085453be50c9f8da0c.zip)
+sha256sums=(d3b1413bb9219804581afab598e7f5308233e7467d64e8084e67aae7346beaba)
 
 _patches_dir="/opt/share/ddvk-hacks"
 _xochitl_path="/usr/bin/xochitl"
 _work_dir="/home/root/.local/share/ddvk-hacks"
+_info_path="$_work_dir/xochitl.info"
 _backup_path="$_work_dir/xochitl.backup"
 _old_backup_path="$_backup_path.old"
 _patched_path="$_work_dir/xochitl.patched"
 
 package() {
-    if [[ $arch = rm1 ]]; then
-        install -D -m 644 -t "$pkgdir$_patches_dir" "$srcdir"/patches/26171_rm1/patch_19.1.02
-        install -D -m 644 -t "$pkgdir$_patches_dir" "$srcdir"/patches/26275_rm1/patch_20.1.03
-        install -D -m 644 -t "$pkgdir$_patches_dir" "$srcdir"/patches/27051_rm1/patch_21.1.04
-        install -D -m 644 -t "$pkgdir$_patches_dir" "$srcdir"/patches/28098_rm1/patch_23.1.02
-        install -D -m 644 -t "$pkgdir$_patches_dir" "$srcdir"/patches/291236_rm1/patch_24.1.02
-        install -D -m 644 -t "$pkgdir$_patches_dir" "$srcdir"/patches/2100324_rm1/patch_25.1.03
-        install -D -m 644 -t "$pkgdir$_patches_dir" "$srcdir"/patches/2102356_rm1/patch_27.1.03
-        install -D -m 644 -t "$pkgdir$_patches_dir" "$srcdir"/patches/2103379_rm1/patch_28.1.02
-        install -D -m 644 -t "$pkgdir$_patches_dir" "$srcdir"/patches/2110442_rm1/patch_29.1.02
-        install -D -m 644 -t "$pkgdir$_patches_dir" "$srcdir"/patches/2121527_rm1/patch_30.1.08
-        install -D -m 644 -t "$pkgdir$_patches_dir" "$srcdir"/patches/2122573_rm1/patch_31.1.01
-        install -D -m 644 -t "$pkgdir$_patches_dir" "$srcdir"/patches/2123606_rm1/patch_32.1.03
-        install -D -m 644 -t "$pkgdir$_patches_dir" "$srcdir"/patches/2140861_rm1/patch_34.1.01
-        install -D -m 644 -t "$pkgdir$_patches_dir" "$srcdir"/patches/2141866_rm1/patch_35.1.01
-    elif [[ $arch = rm2 ]]; then
-        install -D -m 644 -t "$pkgdir$_patches_dir" "$srcdir"/patches/26171_rm2/patch_19.2.02
-        install -D -m 644 -t "$pkgdir$_patches_dir" "$srcdir"/patches/26275_rm2/patch_20.2.03
-        install -D -m 644 -t "$pkgdir$_patches_dir" "$srcdir"/patches/27051_rm2/patch_21.2.05
-        install -D -m 644 -t "$pkgdir$_patches_dir" "$srcdir"/patches/27153_rm2/patch_22.2.01
-        install -D -m 644 -t "$pkgdir$_patches_dir" "$srcdir"/patches/28098_rm2/patch_23.2.02
-        install -D -m 644 -t "$pkgdir$_patches_dir" "$srcdir"/patches/291217_rm2/patch_24.2.04
-        install -D -m 644 -t "$pkgdir$_patches_dir" "$srcdir"/patches/2100324_rm2/patch_25.2.01
-        install -D -m 644 -t "$pkgdir$_patches_dir" "$srcdir"/patches/2101332_rm2/patch_26.2.02
-        install -D -m 644 -t "$pkgdir$_patches_dir" "$srcdir"/patches/2102356_rm2/patch_27.2.05
-        install -D -m 644 -t "$pkgdir$_patches_dir" "$srcdir"/patches/2103379_rm2/patch_28.2.02
-        install -D -m 644 -t "$pkgdir$_patches_dir" "$srcdir"/patches/2110442_rm2/patch_29.2.02
-        install -D -m 644 -t "$pkgdir$_patches_dir" "$srcdir"/patches/2121527_rm2/patch_30.2.07
-        install -D -m 644 -t "$pkgdir$_patches_dir" "$srcdir"/patches/2122573_rm2/patch_31.2.01
-        install -D -m 644 -t "$pkgdir$_patches_dir" "$srcdir"/patches/2123606_rm2/patch_32.2.02
-        install -D -m 644 -t "$pkgdir$_patches_dir" "$srcdir"/patches/2130758_rm2/patch_33.2.01
-        install -D -m 644 -t "$pkgdir$_patches_dir" "$srcdir"/patches/2140861_rm2/patch_34.2.01
-        install -D -m 644 -t "$pkgdir$_patches_dir" "$srcdir"/patches/2141866_rm2/patch_35.2.01
+    mkdir -p "$pkgdir"/opt/share/toltec/reenable.d
+    touch "$pkgdir"/opt/share/toltec/reenable.d/"$pkgname"
+    if [[ $arch = rm1os2 ]]; then
+        patches_dir="${pkgdir}${_patches_dir}"
+        install -D -m 644 -t "$patches_dir" "$srcdir"/patches/26171_rm1/patch_19.1.02
+        install -D -m 644 -t "$patches_dir" "$srcdir"/patches/26275_rm1/patch_20.1.03
+        install -D -m 644 -t "$patches_dir" "$srcdir"/patches/27051_rm1/patch_21.1.04
+        install -D -m 644 -t "$patches_dir" "$srcdir"/patches/28098_rm1/patch_23.1.02
+        install -D -m 644 -t "$patches_dir" "$srcdir"/patches/291236_rm1/patch_24.1.02
+        install -D -m 644 -t "$patches_dir" "$srcdir"/patches/2100324_rm1/patch_25.1.03
+        install -D -m 644 -t "$patches_dir" "$srcdir"/patches/2102356_rm1/patch_27.1.03
+        install -D -m 644 -t "$patches_dir" "$srcdir"/patches/2103379_rm1/patch_28.1.02
+        install -D -m 644 -t "$patches_dir" "$srcdir"/patches/2110442_rm1/patch_29.1.02
+        install -D -m 644 -t "$patches_dir" "$srcdir"/patches/2121527_rm1/patch_30.1.08
+        install -D -m 644 -t "$patches_dir" "$srcdir"/patches/2122573_rm1/patch_31.1.01
+        install -D -m 644 -t "$patches_dir" "$srcdir"/patches/2123606_rm1/patch_32.1.03
+        install -D -m 644 -t "$patches_dir" "$srcdir"/patches/2140861_rm1/patch_34.1.01
+        install -D -m 644 -t "$patches_dir" "$srcdir"/patches/2141866_rm1/patch_35.1.01
+        install -D -m 644 -t "$patches_dir" "$srcdir"/patches/2143977_rm1/patch_36.1.01
+        install -D -m 644 -t "$patches_dir" "$srcdir"/patches/21431047_rm1/patch_37.1.01
+        install -D -m 644 -t "$patches_dir" "$srcdir"/patches/21501067_rm1/patch_38.1.03
+        install -D -m 644 -t "$patches_dir" "$srcdir"/patches/21511189_rm1/patch_39.1.01
+    elif [[ $arch = rm2os2 ]]; then
+        patches_dir="${pkgdir}${_patches_dir}"
+        install -D -m 644 -t "$patches_dir" "$srcdir"/patches/26171_rm2/patch_19.2.02
+        install -D -m 644 -t "$patches_dir" "$srcdir"/patches/26275_rm2/patch_20.2.03
+        install -D -m 644 -t "$patches_dir" "$srcdir"/patches/27051_rm2/patch_21.2.05
+        install -D -m 644 -t "$patches_dir" "$srcdir"/patches/27153_rm2/patch_22.2.01
+        install -D -m 644 -t "$patches_dir" "$srcdir"/patches/28098_rm2/patch_23.2.02
+        install -D -m 644 -t "$patches_dir" "$srcdir"/patches/291217_rm2/patch_24.2.04
+        install -D -m 644 -t "$patches_dir" "$srcdir"/patches/2100324_rm2/patch_25.2.01
+        install -D -m 644 -t "$patches_dir" "$srcdir"/patches/2101332_rm2/patch_26.2.02
+        install -D -m 644 -t "$patches_dir" "$srcdir"/patches/2102356_rm2/patch_27.2.05
+        install -D -m 644 -t "$patches_dir" "$srcdir"/patches/2103379_rm2/patch_28.2.02
+        install -D -m 644 -t "$patches_dir" "$srcdir"/patches/2110442_rm2/patch_29.2.02
+        install -D -m 644 -t "$patches_dir" "$srcdir"/patches/2121527_rm2/patch_30.2.07
+        install -D -m 644 -t "$patches_dir" "$srcdir"/patches/2122573_rm2/patch_31.2.01
+        install -D -m 644 -t "$patches_dir" "$srcdir"/patches/2123606_rm2/patch_32.2.02
+        install -D -m 644 -t "$patches_dir" "$srcdir"/patches/2130758_rm2/patch_33.2.01
+        install -D -m 644 -t "$patches_dir" "$srcdir"/patches/2140861_rm2/patch_34.2.01
+        install -D -m 644 -t "$patches_dir" "$srcdir"/patches/2141866_rm2/patch_35.2.01
+        install -D -m 644 -t "$patches_dir" "$srcdir"/patches/2143977_rm2/patch_36.2.01
+        install -D -m 644 -t "$patches_dir" "$srcdir"/patches/21431047_rm2/patch_37.2.01
+        install -D -m 644 -t "$patches_dir" "$srcdir"/patches/21501067_rm2/patch_38.2.03
+        install -D -m 644 -t "$patches_dir" "$srcdir"/patches/21511189_rm2/patch_39.2.01
     fi
 }
 
@@ -67,12 +81,32 @@ configure() {
     local device
     local original_hash
     local xochitl_version
-    if [[ $arch = rm1 ]]; then
+    if [[ $arch = rm1os2 ]]; then
         device="reMarkable 1"
         case "$build_date" in
+            "20221026103859")
+                patch_version="39.1.01"
+                original_hash="1c01bae469a2e29846c68758e2cae4a2b8b5055d"
+                xochitl_version="2.15.1.1189"
+                ;;
+            "20221003074737")
+                patch_version="38.1.03"
+                original_hash="a3ce408c8a717d48746e361336532924f5ff40f2"
+                xochitl_version="2.15.0.1067"
+                ;;
+            "20220921102803")
+                patch_version="37.1.01"
+                original_hash="011742f027b70f37a0da293132daafcfc82b537d"
+                xochitl_version="2.14.3.1047"
+                ;;
+            "20220825122914")
+                patch_version="36.1.01"
+                original_hash="a88faec812ae20960bfbab38be0aa49aafec902a"
+                xochitl_version="2.14.3.977"
+                ;;
             "20220617142418")
                 patch_version="35.1.01"
-                original_hash="d172016ac8a97ca5df3c551648e0b3314f17f72a"
+                original_hash="a052dfbe587851d17146e586e4be65819f1360e3"
                 xochitl_version="2.14.1.866"
                 ;;
             "20220615075543")
@@ -148,9 +182,29 @@ configure() {
                 exit 1
                 ;;
         esac
-    elif [[ $arch = rm2 ]]; then
+    elif [[ $arch = rm2os2 ]]; then
         device="reMarkable 2"
         case "$build_date" in
+            "20221026104022")
+                patch_version="39.2.01"
+                original_hash="64e3cb3d05aec4a40624ebfc730e480358e1b184"
+                xochitl_version="2.15.1.1189"
+                ;;
+            "20221003075633")
+                patch_version="38.2.03"
+                original_hash="fcd3c84215c5457d455419831760304736f3b694"
+                xochitl_version="2.15.0.1067"
+                ;;
+            "20220921101206")
+                patch_version="37.2.01"
+                original_hash="47c3ad26651f604be5de901881a8a44f9124a79c"
+                xochitl_version="2.14.3.1047"
+                ;;
+            "20220825124750")
+                patch_version="36.2.01"
+                original_hash="470e88f8d5fb62f64939fe4ea3b89c515113f7e5"
+                xochitl_version="2.14.3.977"
+                ;;
             "20220617143306")
                 patch_version="35.2.01"
                 original_hash="1d7f6f049e5a6b192caaf07cbf67ba7c2555e5f0"
@@ -277,11 +331,25 @@ configure() {
     cp "$_patched_path" "$_xochitl_path"
     rm -rf /home/root/.cache/remarkable/xochitl/qmlcache/*
 
+    # shellcheck source=../toltec-bootstrap/toltecctl
+    source /home/root/.local/bin/toltecctl
+    get-release-version > "$_info_path"
+
     echo "Please restart Xochitl to use the patches"
     echo
 }
 
 _restore() {
+    # shellcheck source=../toltec-bootstrap/toltecctl
+    source /home/root/.local/bin/toltecctl
+
+    if ! [ -f "$_info_path" ] \
+        || [[ "$(get-release-version)" != "$(cat "$_info_path")" ]] \
+        || compare-versions "$(get-release-version)" "3.0"; then
+        echo "Skipping restore, as you are on a newer OS version"
+        return
+    fi
+
     echo
     echo "Restoring the original Xochitl binary"
 
@@ -291,6 +359,7 @@ _restore() {
     else
         cp "$_backup_path" "$_xochitl_path"
         rm -rf /home/root/.cache/remarkable/xochitl/qmlcache/*
+        rm "$_info_path"
     fi
 
     echo

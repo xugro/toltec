@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
-# Copyright (c) 2021 The Toltec Contributors
+# Copyright (c) 2024 The Toltec Contributors
 # SPDX-License-Identifier: MIT
 
 pkgnames=(koreader)
 pkgdesc="Ebook reader supporting PDF, DjVu, EPUB, FB2 and many more formats"
 url=https://github.com/koreader/koreader
-pkgver=2022.06-1
-timestamp=2022-06-23T19:32:08Z
+pkgver=2024.07-1
+timestamp=2024-07-15T16:21:26Z
 section="readers"
 maintainer="raisjn <of.raisjn@gmail.com>"
 license=AGPL-3.0-or-later
@@ -14,14 +14,16 @@ installdepends=(fbink fbdepth display rm2fb-client)
 
 _srcver="v${pkgver%-*}"
 source=(
-    "https://build.koreader.rocks/download/stable/$_srcver/koreader-remarkable-$_srcver.zip"
+    "https://github.com/koreader/koreader/releases/download/$_srcver/koreader-remarkable-$_srcver.zip"
     koreader.draft
     KOReader.oxide
     koreader-toltec.service
     koreader
+    launcherctl-koreader
 )
 sha256sums=(
-    2338591c3bc4eebd5a67e065ab98315f6a687f1c52111d39a30ac860fc3eec80
+    1040894434421b52076473f7947f139e2c98fcc04b1acadfe29b3362f262f9b7
+    SKIP
     SKIP
     SKIP
     SKIP
@@ -35,36 +37,36 @@ package() {
     rm "$pkgdir"/opt/koreader/{fbink,fbdepth}
     ln -s /opt/bin/fbink "$pkgdir"/opt/koreader/fbink
     ln -s /opt/bin/fbdepth "$pkgdir"/opt/koreader/fbdepth
+    sed -i 's/hasOTAUpdates = yes/hasOTAUpdates = no/' "$pkgdir"/opt/koreader/frontend/device/remarkable/device.lua
 
     install -D -m 644 -t "$pkgdir"/opt/etc/draft/ "$srcdir"/koreader.draft
     install -D -m 644 -t "$pkgdir"/opt/usr/share/applications/ "$srcdir"/KOReader.oxide
     install -D -m 644 "$srcdir"/koreader-toltec.service "$pkgdir"/lib/systemd/system/koreader.service
     install -D -m 644 -t "$pkgdir"/opt/etc/draft/icons/ "$srcdir"/resources/koreader.png
     install -D -m 755 -t "$pkgdir"/opt/bin/ "$srcdir"/koreader
+    install -D -T -m 755 "$srcdir"/launcherctl-koreader "$pkgdir"/opt/share/launcherctl/"$pkgname"
 }
 
 configure() {
+    # This file can cause issues with startup when moving from 2022.08 to another version
+    if [ -f /opt/koreader/cache/fontlist/fontinfo.dat ]; then
+        rm /opt/koreader/cache/fontlist/fontinfo.dat
+    fi
+
     systemctl daemon-reload
 
-    if ! is-enabled "$pkgname.service"; then
-        cat << MSG
-
-Run the following command(s) to use $pkgname as your launcher
-$(how-to-enable "$pkgname.service")
-
-MSG
+    if ! launcherctl is-current-launcher "$pkgname"; then
+        echo ""
+        echo "Run the following command(s) to use $pkgname as your launcher"
+        echo "launcherctl switch-launcher --start $pkgname"
+        echo ""
     fi
 }
 
 preremove() {
-    if is-active "$pkgname"; then
-        echo "Stopping $pkgname"
-        systemctl stop "$pkgname"
-    fi
-
-    if is-enabled "$pkgname"; then
-        echo "Disabling $pkgname"
-        systemctl disable "$pkgname"
+    # Just in case more than one launcher is active, do individual checks
+    if launcherctl is-active-launcher "$pkgname" || launcherctl is-enabled-launcher "$pkgname"; then
+        launcherctl switch-launcher --start xochitl
     fi
 }
 

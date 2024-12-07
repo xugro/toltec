@@ -1,0 +1,50 @@
+#!/usr/bin/env bash
+# Copyright (c) 2021 The Toltec Contributors
+# SPDX-License-Identifier: MIT
+
+pkgnames=(kernelctl)
+pkgdesc="Manage aftermarket kernels"
+url=https://toltec-dev.org/
+pkgver=0.2-1
+timestamp=2022-11-12T00:00Z
+section="utils"
+maintainer="Salvatore Stella <etn45p4m@gmail.com>"
+license=MIT
+
+source=(
+    kernelctl
+)
+sha256sums=(
+    SKIP
+)
+
+package() {
+    install -D -m 744 -t "$pkgdir"/opt/bin "$srcdir"/kernelctl
+    install -d "$pkgdir"/opt/usr/share/kernelctl
+    mkdir -p "$pkgdir"/opt/share/toltec/reenable.d
+    touch "$pkgdir"/opt/share/toltec/reenable.d/"$pkgname"
+}
+
+configure() {
+    os_version=$(awk -F= '/RELEASE_VERSION/{print $2}' /usr/share/remarkable/update.conf)
+    if [[ "$(kernelctl list | tail -n +2 | awk '{print $2}' | grep "vanilla-$os_version")" == "" ]]; then
+        echo "Creating a backup of the currently running kernel."
+        kernelctl backup vanilla
+    fi
+}
+
+preremove() {
+    os_version=$(awk -F= '/RELEASE_VERSION/{print $2}' /usr/share/remarkable/update.conf)
+    if [[ "$(kernelctl show | tail -n 1 | grep "vanilla-$os_version")" == "" ]]; then
+        if [[ "$(kernelctl list | tail -n +2 | awk '{print $2}' | grep "vanilla-$os_version")" == "" ]]; then
+            echo "Unable to restore default kernel."
+            echo "To force removal, you can run the following:"
+            echo "  opkg remove --force-remove kernelctl"
+            echo "Warning: This will not leave you in a stock state"
+            exit 1
+        else
+            echo "Restoring default kernel"
+            kernelctl set default
+        fi
+    fi
+}

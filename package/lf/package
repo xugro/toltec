@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+# Copyright (c) 2024 The Toltec Contributors
+# SPDX-License-Identifier: MIT
+
+pkgnames=(lf)
+pkgdesc="Terminal file manager"
+url=https://github.com/gokcehan/lf
+pkgver=r32-1
+timestamp=2024-03-31T20:04Z
+section="utils"
+maintainer="gbyl <gbyl@users.noreply.github.com>"
+license=MIT
+installdepends=(libncurses-dev)
+
+image=golang:v3.1
+source=("https://github.com/gokcehan/lf/archive/refs/tags/${pkgver%-*}.zip")
+sha256sums=(571ee17d8181d77a3b8bcd7aaaff0bde062c1851d93e9d324dfe15948136891a)
+
+build() {
+    export GOARCH=arm
+    go build
+}
+
+package() {
+    install -D -m 755 "$srcdir"/lf "$pkgdir"/opt/bin/lf
+}

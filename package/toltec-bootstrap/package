@@ -5,8 +5,8 @@
 pkgnames=(toltec-bootstrap)
 pkgdesc="Manage your Toltec install"
 url=https://toltec-dev.org/
-pkgver=0.2.2-1
-timestamp=2022-02-28T00:12Z
+pkgver=0.4.5-1
+timestamp=2024-05-31T19:13Z
 section="utils"
 maintainer="Eeems <eeems@eeems.email>"
 license=MIT
@@ -53,14 +53,19 @@ configure() {
         fi
 
         create-entware-conf
-        switch-branch "$branch"
-        echo "Your Opkg configuration has been migrated"
-
-        if generate-opkg-conf; then
-            echo
-            echo "! The upgrade is not finished! Please run \`opkg update\`"
-            echo "! and \`opkg upgrade\` once more to complete it."
-            echo
-        fi
     fi
+
+    switch-branch "$(get-branch)"
+    echo "Your Opkg configuration has been upgraded"
+    if generate-opkg-conf; then
+        echo
+        echo "! The upgrade is not finished! Please run \`opkg update\`"
+        echo "! and \`opkg upgrade\` once more to complete it."
+        echo
+    fi
+}
+
+postremove() {
+    # Reload rules without the input udev rule
+    udevadm control --reload-rules && udevadm trigger
 }

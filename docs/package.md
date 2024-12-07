@@ -38,11 +38,17 @@ You can also declare custom variables to reduce repetition but make sure to pref
 The list of devices that are compatible with this package.
 The following values are accepted:
 
-Name    | Meaning
---------|-------------------------------------------------------------------------
-`rmall` | Packages which work on all reMarkable devices without modification.
-`rm1`   | Packages requiring reMarkable 1-specific resources or compilation flags.
-`rm2`   | Packages requiring reMarkable 2-specific resources or compilation flags.
+Name        | Meaning
+------------|-------------------------------------------------------------------------
+`rmall`     | Packages which work on all reMarkable devices without modification.
+`rm1`       | Packages requiring reMarkable 1-specific resources or compilation flags.
+`rm2`       | Packages requiring reMarkable 2-specific resources or compilation flags.
+`rmallos2` | Packages which work on all reMarkable devices without modification, but only on the 2.x series of operating system.
+`rm1os2`   | Packages requiring reMarkable 1-specific resources or compilation flags, but only on the 2.x series of operating system.
+`rm2os2`   | Packages requiring reMarkable 2-specific resources or compilation flags, but only on the 2.x series of operating system.
+`rmallos3` | Packages which work on all reMarkable devices without modification, but only on the 3.x series of operating system.
+`rm1os3`   | Packages requiring reMarkable 1-specific resources or compilation flags, but only on the 3.x series of operating system.
+`rm2os3`   | Packages requiring reMarkable 2-specific resources or compilation flags, but only on the 3.x series of operating system.
 
 For example, use `archs=(rm1)` for a package that only works on reMarkable 1, or `archs=(rm1 rm2)` for a package that works both on reMarkable 1 and reMarkable 2 but needs different dependencies or compilation flags for each of those.
 
@@ -328,7 +334,9 @@ math            | Apps to assist the user in performing mathematical tasks.
 readers         | Apps for reading and annotating documents (PDF, EPUB, …).
 screensharing   | Apps for streaming the display between the PC and tablet.
 templates       | Templates for xochitl notebooks.
+splashscreens   | Splashscreens for device startup, poweroff, suspend, etc.
 utils           | System tools and various apps.
+writing         | Apps for writing text.
 
 If the package does not fit into one of the existing sections, you are free to create a new one and document it here.
 
@@ -404,6 +412,21 @@ A list of packages that the current package replaces.
 Setting this field allows the current package to overwrite and take ownership of files from other packages.
 Note that the replaced packages will not be automatically uninstalled unless you also declare a conflict with them using the [`conflicts` field](#conflicts-field).
 
+#### `provides` field
+
+<table>
+    <tr>
+        <th>Required?</th>
+        <td>No, defaults to <code>()</code></th>
+    </tr>
+    <tr>
+        <th>Type</th>
+        <td>Array of strings</td>
+    </tr>
+</table>
+
+A list of virtual packages that the current package provides.
+
 #### `package()` function
 
 The `package()` function populates the `$pkgdir` directory with the files and directories that need to be installed using artifacts from the `$srcdir` directory.
@@ -439,3 +462,12 @@ When upgrading a package from version A to B, the following happens:
 * `postupgrade B`, if it exists, is called from version A
 * New package files are unpacked and installed
 * `configure`, if it exists, is called from version B
+
+
+### reload-oxide-apps hook
+
+If a package contains one or more files in `/opt/etc/draft` or `/opt/usr/share/applications` the `reload-oxide-apps` method in `install-lib` will be appended to the following:
+
+* `configure`
+* `postupgrade`
+* `postremove`

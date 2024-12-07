@@ -1,30 +1,49 @@
 #!/usr/bin/env bash
-# Copyright (c) 2020 The Toltec Contributors
+# Copyright (c) 2022 The Toltec Contributors
 # SPDX-License-Identifier: MIT
 
 pkgnames=(yaft)
 pkgdesc="Yet another framebuffer terminal"
 url=https://github.com/timower/rM2-stuff/tree/master/apps/yaft
-pkgver=0.0.4-4
-timestamp=2021-04-30T10:42Z
+_tag=0.1.2
+pkgver=${_tag}-1
+timestamp=2024-05-29T17:05:56Z
 maintainer="Mattéo Delabre <spam@delab.re>"
 license=GPL-3.0
 section="admin"
-image=base:v2.1
-installdepends=(display)
+image=base:v3.1
+installdepends=(display terminfo)
+flags=(nostrip)
 
-source=(https://github.com/timower/rM2-stuff/archive/refs/tags/v0.0.4.tar.gz)
-sha256sums=(dee471ac19ea43ba741f826c9a0a17d7a01bda6472043d400fbcab6fad1931fe)
+source=()
+sha256sums=()
+
+prepare() {
+    cd "$srcdir"
+    mkdir -p yaft
+    cd yaft
+    git init
+    git lfs install
+    git remote add origin https://github.com/timower/rM2-stuff.git
+    git fetch --depth 1 origin tag v${_tag} --no-tags
+    git checkout v${_tag}
+    git lfs fetch
+    git lfs checkout
+}
 
 build() {
-    mkdir build
+    cd "$srcdir"
     mkdir install
-    cd build
-    cmake -DCMAKE_TOOLCHAIN_FILE="/usr/share/cmake/$CHOST.cmake" \
-        -DCMAKE_INSTALL_PREFIX="../install" -DCMAKE_BUILD_TYPE=Release ..
-    cd apps/yaft
-    make
-    make install
+    cd yaft
+    cmake --preset release-toltec
+    cmake \
+        --build build/release-toltec \
+        --target yaft
+    cmake \
+        --install build/release-toltec \
+        --prefix ../install \
+        --component yaft \
+        --strip
 }
 
 package() {

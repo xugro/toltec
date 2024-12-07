@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+# Copyright (c) 2021 The Toltec Contributors
+# SPDX-License-Identifier: MIT
+
+pkgnames=(neofetch)
+pkgdesc="A command-line system information tool"
+url="https://github.com/rM-self-serve/neofetch-rM"
+pkgver=1.1.1-1
+timestamp=2024-03-14T11:43:00Z
+section="utils"
+maintainer="rM-self-serve <122753594+rM-self-serve@users.noreply.github.com>"
+license=MIT
+
+source=(
+    "$url"/archive/6dfc7a7b0c10f451bdd8a09813ab6dea01ef6be2.zip
+)
+
+sha256sums=(
+    798ddbcb196b382e6bb70b3da08bc0e745c8b6da0bfe4ea5cd66653d383e5b1d
+)
+
+package() {
+    install -D -m 755 -t "$pkgdir"/opt/bin "$srcdir"/neofetch
+}
+
+configure() {
+    if [ -f '/home/root/.config/neofetch/config.conf' ]; then
+        echo ""
+        echo "You may choose to remove ~/.config/neofetch/config.conf"
+        echo "in order to get the latest default config."
+    fi
+}

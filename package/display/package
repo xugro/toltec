@@ -4,11 +4,11 @@
 
 archs=(rm1 rm2)
 pkgnames=(display rm2fb-client)
-timestamp=2022-06-22T13:16:48Z
+timestamp=2023-08-27T02:39:10Z
 maintainer="raisjn <of.raisjn@gmail.com>"
 license=MIT
 url="https://github.com/ddvk/remarkable2-framebuffer"
-pkgver=1:0.0.20-1
+pkgver=1:0.0.33-3
 _release="${pkgver%-*}"
 _release="v${_release#*:}"
 _libver=1.0.1
@@ -23,7 +23,7 @@ source=(
     rm2fb-preload.env
 )
 sha256sums=(
-    02acb6c77e4b9b973151ba6eb4e6093a0f7733d9aeca513ecbc36f6008acda89
+    dd57f1ba31f08a28d801989e9a705bd93cc637cd8f4dffa160412119e69329ff
     SKIP
     SKIP
     SKIP
@@ -64,21 +64,26 @@ display() {
     configure() {
         if [[ $arch = rm2 ]]; then
             systemctl daemon-reload
-            systemctl enable rm2fb --now
-            # Restart xochitl if it's running
-            if systemctl --quiet is-active xochitl; then
-                # Reset the crash count so we don't trigger remarkable-fail
-                echo "0" > /tmp/crashnum
-                systemctl restart xochitl
+            if systemctl enable rm2fb --now; then
+                # Restart xochitl if it's running
+                if is-active xochitl; then
+                    # Reset the crash count so we don't trigger remarkable-fail
+                    echo "0" > /tmp/crashnum
+                    systemctl restart xochitl
+                fi
+            else
+                disable-unit rm2fb.service
+                echo "Failed to start rm2fb. Keeping it disabled for now."
+                echo "Please check the logs and open an issue:"
+                echo "  https://github.com/toltec-dev/toltec/issues/new"
+                exit 1
             fi
         fi
     }
 
     preremove() {
         if [[ $arch = rm2 ]]; then
-            if systemctl list-units --full -all | grep -Fq 'rm2fb.service'; then
-                systemctl disable rm2fb --now
-            fi
+            disable-unit rm2fb.service
             echo -n "make sure "
             if ! is-enabled xochitl.service; then
                 echo "to re-enable xochitl with 'systemctl enable xochitl --now'"
@@ -97,14 +102,16 @@ rm2fb-client() {
     replaces=(rm2fb)
 
     package() {
-        libname="librm2fb_client.so.$_libver"
-        install -D -m 644 -t "$pkgdir"/opt/lib "$srcdir"/src/client/"$libname"
+        libname="librm2fb_client.so"
+        libnamever="$libname.$_libver"
+        install -D -m 644 -t "$pkgdir"/opt/lib "$srcdir"/src/client/"$libnamever"
         install -d "$pkgdir"/usr/lib
-        ln -s /opt/lib/"$libname" "$pkgdir"/usr/lib/"$libname"
+        ln -s /opt/lib/"$libnamever" "$pkgdir"/usr/lib/"$libnamever"
+        ln -s /opt/lib/"$libnamever" "$pkgdir"/opt/lib/"$libname"
 
         for dest in opt/lib usr/lib; do
-            ln -s "$libname" "$pkgdir/$dest/${libname%.*.*}"
-            ln -s "$libname" "$pkgdir/$dest/${libname%.*}"
+            ln -s "$libnamever" "$pkgdir/$dest/${libnamever%.*.*}"
+            ln -s "$libnamever" "$pkgdir/$dest/${libnamever%.*}"
         done
 
         install -D -m 755 -t "$pkgdir"/opt/bin "$srcdir"/rm2fb-client
