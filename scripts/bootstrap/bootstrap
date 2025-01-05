@@ -21,25 +21,16 @@ if [ -z "$BASH" ] || [[ "$(ps | awk '$1=='$$' { n=split($5,a,"/"); print a[n] }'
 fi
 
 arch=""
-device=""
-unam="$(uname -m)"
-
-if [ "$unam" = "armv7l" ]; then
-    arch="armv7sf-k3.2"
-    device="rmall" #rmall is only rm1 and rm2 to keep compatibility with older toltec versions
-fi
-
-if [ "$unam" = "aarch64" ]; then
-    arch="aarch64-k3.10"
-    device="rmpp"
-    echo "The reMarkable Paper Pro is not yet supported!"
-    exit 1
-fi
-
-if [ -z "$arch" ]; then
-	echo "Device architecture not recognised."
-	exit 1
-fi
+case "$(uname -m") in
+    "armv7l")
+        arch="armv7sf-k3.2" ;;
+    #"aarch64)
+    #    arch="aarch64-k3.10" ;;
+    *)
+        echo "Unsupported device architecture"
+        exit 1
+        ;;
+esac
 
 set -eEuo pipefail
 
@@ -55,7 +46,7 @@ toltec_branch="${toltec_branch:-stable}"
 
 # Base URLs for bootstrapping from the Entware and Toltec repositories
 entware_remote="${entware_remote:-https://bin.entware.net/$arch/installer}"
-toltec_remote="${toltec_remote:-https://toltec-dev.org/$toltec_branch/$device}"
+toltec_remote="${toltec_remote:-https://toltec-dev.org/$toltec_branch/rmall}"
 
 # Remove all temporary files
 cleanup() {
