@@ -23,9 +23,11 @@ fi
 arch=""
 case "$(uname -m)" in
     "armv7l")
-        arch="armv7sf-k3.2" ;;
+        arch="armv7sf-k3.2"
+        ;;
     #"aarch64)
-    #    arch="aarch64-k3.10" ;;
+    #    arch="aarch64-k3.10"
+    #    ;;
     *)
         echo "Unsupported device architecture"
         exit 1
