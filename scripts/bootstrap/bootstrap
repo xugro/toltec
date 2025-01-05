@@ -21,7 +21,7 @@ if [ -z "$BASH" ] || [[ "$(ps | awk '$1=='$$' { n=split($5,a,"/"); print a[n] }'
 fi
 
 arch=""
-case "$(uname -m") in
+case "$(uname -m)" in
     "armv7l")
         arch="armv7sf-k3.2" ;;
     #"aarch64)
